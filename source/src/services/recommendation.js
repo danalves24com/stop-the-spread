@@ -5,21 +5,25 @@ var restrictionsOptions = [
   ["Full vaccination", 0.8],
   ["Social Distance", 0.7]
 ]
-var completedRestriction = 2;
 
 
-function r(i, m) {
-  return (Math.random() * (m-i)) + i;
+class Recommendation {
+  constructor(totalInfected, population) {
+    this.infectedProportion = totalInfected/population;
+  }
+  compute(eventSize, restrictionCompletion, strictness)  {
+    var n = eventSize,
+        s = strictness,
+        a1 = this.infectedProportion,
+        a2 = restrictionCompletion<=0?Math.pow(10, -40):restrictionCompletion;
+    console.log( (n/(100 * (1 - s))), (Math.sqrt(a1*a2)))
+    return  Math.pow(a1*a2, 1/((n/(100 * (1 - s)))));
+  }
 }
 
 
-var totalInfected = 81111, population = 10000000, infectedProp = totalInfected / population, infectedRisk = Math.cbrt(infectedProp);
 
-for(var i = 0 ; i < 20 ;i += 1) {
-  var eventSize = r(20, 500),
-      restrictions = parseInt(r(0, restrictionsOptions.length)) / restrictionsOptions.length,
-      eventDuration = r(30, 120);
-  var eventThreat = infectedRisk + (1-restrictions) ; // how risky
-  eventThreat /= 2;
-  console.log(eventSize, restrictions, eventDuration, eventThreat);
-}
+
+
+
+export default Recommendation;
