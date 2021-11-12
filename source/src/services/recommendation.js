@@ -16,8 +16,9 @@ class Recommendation {
         s = strictness,
         a1 = this.infectedProportion,
         a2 = restrictionCompletion<=0?Math.pow(10, -40):restrictionCompletion;
-    console.log( (n/(100 * (1 - s))), (Math.sqrt(a1*a2)))
-    return  Math.pow(a1*a2, 1/((n/(100 * (1 - s)))));
+    var skew = - (1/15), n1 = 1-( (n<100? (n<10?2:10):100) /n);
+    var mean = (n1 + (1-a2)) / 2;
+    return (skew*(1-s)) + mean;
   }
 }
 
