@@ -7,12 +7,14 @@ import loci from './locales'
 
 var dloc = navigator.language || navigator.userLanguage;
 dloc = dloc.split("-")[0]
+var q = window.location.search.split("=")[1];
+dloc = q!=undefined?q:dloc;
 console.log(dloc);
 var loc = loci[0][dloc];
 
 
 
-var conditions = loc.adj.opt;
+var conditions = loc.adj.opt, recommendations = [];
 
 
 // test data
@@ -23,12 +25,18 @@ class Home extends Component {
 
   constructor(p){
     super(p)
-
+    this.state = {
+      "conditions": loc.adj.opt,
+      "recommendations": [],
+      "color": "",
+      "message": "",
+      "score": 0
+    }
+    this.computeRisk = this.computeRisk.bind(this)
   }
 
 
   computeRisk() {
-
     var country = $("#countries").val(), size = parseInt($("#size").val());
     var encoded = [], conditionsMet = [], conditionsMetVal = 0, conditionsMetProp = 0;
     for(var c in conditions) {
@@ -56,33 +64,41 @@ class Home extends Component {
 
     var score = parseInt(res*100);
     var scoreColor = 'green'
+    var recommendationSetIndex = 0;
     if(score >= 90) {
       scoreColor="red-800";
+      recommendationSetIndex = 0;
     }
     else if (score < 90 && score >= 75) {
       scoreColor="red-500"
+      recommendationSetIndex = 1;
     }
     else if ( score < 75 && score >= 50 ) {
       scoreColor="yellow-500"
+      recommendationSetIndex = 2;
     }
     else if ( score < 50 && score >= 25 ) {
       scoreColor="green-500"
+      recommendationSetIndex = 3;
     }
     else {
       scoreColor="green-800"
+      recommendationSetIndex = 4;
     }
     var classVal = ` border-${scoreColor}`;
-
-    $("#score").html(score);
-
-
-    var borderClass = $("#border").attr("class");
-
-    $("#border").attr("class", borderClass + classVal)
+    var states = this.state;
+    states.recommendations = loc.res.reco[recommendationSetIndex]
+    states.color = classVal;
+    states.message = loc.gen_reco[recommendationSetIndex];
+    states.score = score;
 
 
+    this.setState(states);
+
+
+    // show and scroll to
     $("#result").show();
-
+    window.location = "#score"
   }
 
 
@@ -131,7 +147,7 @@ class Home extends Component {
               {loc.adj.title2}
             </div>
             {
-              conditions.map(x => {
+              this.state.conditions.map(x => {
                 return (
 
                   <div class="flex items-center justify-center py-2">
@@ -151,7 +167,7 @@ class Home extends Component {
               })
             }
           </div>
-          <div class="flex items-center justify-center my-20">
+          <div class="flex items-center justify-center my-5">
             <button class="bg-red-200 rounded p-2 outline-none" onClick={this.computeRisk}>
               Calculate Risk
             </button>
@@ -161,35 +177,46 @@ class Home extends Component {
       </div>
 
       <div class="mx-auto  h-screen" id="result">
-        <div class="flex items-center justify-center h-1/3">
-          <div class="border-2 p-10 border-yellow-600 rounded-full" id="border">
-            <div class="text-5xl text-center color-yellow-500" id="score">
-              56
-            </div>
-            <div class="text-sm tracking-smallest">
-              Risk Score
+        <div class="items-center justify-center h-1/3 flex">
+          <div class="">
+            <div class={"border-2 p-10 " + this.state.color} id="border">
+              <div>
+                <div class={"text-5xl text-center "} id="score">
+                  {this.state.score}
+                </div>
+                <div class="text-sm tracking-smallest text-center">
+                  {loc.res.t1}
+                </div>
+              </div>
+              <div>
+                <div class=" mx-10 text-center text-xl">
+                  {this.state.message}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="h-1/3 m-2 border-2 rounded-lg">
+        <div class="h-1/3 m-2">
           <div class="mx-5">
               <div class="text-3xl tracking-wide py-3">
-                Recommendations
+                {loc.res.t2}
               </div>
               <div class="mx-2">
                 <ul class="list-decimal list-inside">
-                  <li>
-                    ---
-                  </li>
-                  <li>
-                    ---
-                  </li>
+
+                  {
+                    this.state.recommendations.map(r => {
+                      return ( <li>
+                                 {r}
+                              </li>)
+                    })
+                  }
                 </ul>
               </div>
 
           </div>
         </div>
-        <div class="h-auto m-2 border-2 border-bottom-none rounded-lg">
+        <div class="h-auto m-2">
         </div>
 
       </div>
